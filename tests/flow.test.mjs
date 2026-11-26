@@ -1,0 +1,50 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {example} from '../examples/demo.mjs';
+import {snapshot,status,record,review,read} from '../plugins/my-skills/skills/my-oc-flow/scripts/flow.mjs';
+import {setup} from '../plugins/my-skills/skills/my-oc-flow/scripts/setup.mjs';
+const root=()=>fs.mkdtempSync(join(tmpdir(),'my-skills-check-'));
+test('example, resume and stale code invalidate completion',()=>{
+  const dir=root(),r=example(dir);
+  assert.equal(r.done,true);assert.ok(fs.readFileSync(r.report,'utf8').includes('Hello, Mina!'));
+  fs.appendFileSync(join(dir,'greet.mjs'),'// change');
+  assert.equal(status(dir,'greeting').done,false);
+  assert.throws(()=>record(dir,'greeting','finish',{summary:'stale',planKey:r.planKey,basedOn:r.revision}),/revision/);
+  assert.throws(()=>record(dir,'greeting','verify',{summary:'skip',planKey:r.planKey,buildPassed:true,checks:[],basedOn:snapshot(dir)}),/implementation/);
+});
+test('one-sided, explicit split, arbiter, and correction',()=>{
+  const dir=root(), base=example(dir,'verify').revision, vote=(vote)=>({id:'duplicate',vote,evidence:'fixture'});
+  const add=(stage,session,other={})=>record(dir,'greeting',stage,{summary:'fixture',planKey:read(dir,'greeting').state.plan?.planKey,basedOn:base,session,...other});
+  add('code-a','ra',{votes:[vote('accept')]});add('code-b','rb',{votes:[]});
+  assert.equal(review(read(dir,'greeting').state,'code').issues[0].verdict,'peer-check');
+  assert.throws(()=>add('code-judge','judge',{decisions:[vote('reject')]}));
+  add('code-b','rb',{votes:[vote('unknown')]});
+  assert.throws(()=>add('code-judge','judge',{decisions:[vote('reject')]}));
+  add('code-b','rb',{votes:[vote('reject')]});
+  assert.throws(()=>add('finish','main'));
+  assert.throws(()=>add('code-judge','ra',{decisions:[vote('reject')]}),/independent/);
+  add('code-judge','judge',{decisions:[vote('accept')]});
+  assert.throws(()=>add('finish','main'));
+  add('implementation','new-implement');
+  assert.equal(status(dir,'greeting').stages.includes('code-b'),false);
+});
+test('missing UI verification stays incomplete and report escapes text',()=>{
+  const dir=root();example(dir);
+  const add=(stage,extra={})=>record(dir,'greeting',stage,{summary:'<script>bad()</script>',planKey:read(dir,'greeting').state.plan?.planKey,basedOn:snapshot(dir),...extra});
+  const oldPlan=read(dir,'greeting').state.plan.planKey;
+  add('plan',{ui:['C1']});assert.throws(()=>add('plan-a',{session:'p1',votes:[],planKey:oldPlan}),/Plan revision/);add('plan-a',{session:'p1',votes:[]});add('plan-b',{session:'p2',votes:[]});
+  add('implementation',{session:'i2'});add('verify',{buildPassed:true,checks:[{id:'C1',result:'device-pending',evidence:'await device'}]});
+  add('code-a',{session:'r1',votes:[]});add('code-b',{session:'r2',votes:[]});
+  assert.throws(()=>add('finish'));add('device',{checks:[{id:'C1',result:'unverified',evidence:'device unavailable'}]});
+  assert.throws(()=>add('finish'));assert.ok(!fs.readFileSync(status(dir,'greeting').report,'utf8').includes('<script>bad()'));
+  add('device',{checks:[{id:'C1',result:'pass',evidence:'screen checked'}]});add('finish');assert.equal(status(dir,'greeting').done,true);
+});
+test('project roles are idempotent and refuse collisions',()=>{
+  const dir=root();const data=setup(dir,true);
+  assert.ok(data.every(i=>i.status==='installed'));
+  assert.ok(setup(dir,true).every(i=>i.status==='ready'));
+  fs.writeFileSync(data[0].path,'local settings');assert.throws(()=>setup(dir,true),/Conflicting/);
+});

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "my-skills",
+  "version": "0.1.0",
+  "description": "Personal development workflows for Codex",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "My Skills",
+        "shortDescription": "독립 설계·리뷰와 실행 증거를 갖춘 개인 개발 스킬",
+        "longDescription": "메모부터 구현, 독립 검토, 기기 재생과 로컬 보고서까지 Codex로 진행하는 개발 스킬 모음입니다.",
+        "developerName": "Cjsghkd",
+        "category": "Productivity",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "defaultPrompt": [
+          "$my-oc-flow 메모를 바탕으로 기능을 개발해줘"
+        ]
+      }
+    }
+  }
+}

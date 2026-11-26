@@ -1,0 +1,52 @@
+{
+  "survey": {
+    "model": "gpt-6.1-terra",
+    "effort": "low",
+    "instruction": "Trace entry points and existing behaviour. Return source locations, observed facts, available test commands and devices, with unknowns."
+  },
+  "criteria": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Translate the original memo into observable acceptance criteria. Ask about decisions that change product behaviour."
+  },
+  "design": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Independently propose the smallest complete implementation, contracts to preserve and a falsifiable check for every criterion. Keep alternatives visible."
+  },
+  "plan_review": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Independently review the same plan against the memo. Find missing failure states or tests that would pass a broken implementation. Cite evidence."
+  },
+  "implement": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Implement the agreed plan through its real entry points. Reuse compatible existing behaviour. Preserve data, failure handling and accessibility. Keep regression tests that protect a specific failure."
+  },
+  "verify": {
+    "model": "gpt-6.1-terra",
+    "effort": "low",
+    "instruction": "Execute planned checks on the specified revision. Return commands, observed results and evidence. Mark an unavailable check unverified."
+  },
+  "code_review": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Independently review the actual change, callers, prior data and tests. Evaluate concrete user-visible failure paths; cite code or execution."
+  },
+  "device": {
+    "model": "gpt-6.1-terra",
+    "effort": "low",
+    "instruction": "Replay or record the requested device case. Verify outcomes using explicit assertions, save evidence locally and identify the first failing step."
+  },
+  "visual": {
+    "model": "gpt-6.2-sol",
+    "effort": "medium",
+    "instruction": "Inspect only the ambiguous scenario and relevant captured evidence. Compare observed and expected state. Report uncertainty explicitly."
+  },
+  "arbiter": {
+    "model": "gpt-6.2-sol",
+    "effort": "high",
+    "instruction": "Resolve only explicit opposing votes on a specific claim. Independently inspect evidence and return accept, reject or unknown with reasoning."
+  }
+}
