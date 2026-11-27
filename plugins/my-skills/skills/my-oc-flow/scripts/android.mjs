@@ -1,6 +1,6 @@
 import * as fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
@@ -96,7 +96,11 @@ if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url))
     const [mode,serial,source,evidence,target]=process.argv.slice(2);
     requireThat(['record','replay'].includes(mode) && source && evidence && (mode==='record'?Boolean(target):!target),'android.mjs record SERIAL DRAFT.json EVIDENCE_DIR NEW_ROUTE.json | replay SERIAL ROUTE.json EVIDENCE_DIR');
     const route=JSON.parse(fs.readFileSync(source,'utf8').replace(/^\uFEFF/,''));
-    if(mode==='record') requireThat(!fs.existsSync(target),'Choose a new route path');
+    if(mode==='record') {
+      const local = relative(resolve('docs','flows'),resolve(target)).replaceAll('\\','/');
+      requireThat(!/^(?!\.\.?\/)[^/]+\/[^/]+\.android\.json$/i.test(local),'Use routes.mjs learn and confirm for the project route library');
+      requireThat(!fs.existsSync(target),'Choose a new route path');
+    }
     const result=await execute(route,adbDriver(serial),resolve(evidence),mode);
     if(mode==='record' && result.status==='pass') {
       const dir=dirname(resolve(target));fs.mkdirSync(dir,{recursive:true});

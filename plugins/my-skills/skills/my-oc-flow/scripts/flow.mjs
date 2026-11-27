@@ -15,7 +15,9 @@ const unique = xs => new Set(xs).size === xs.length;
 export function snapshot(root) {
   const git = (...args) => execFileSync('git', ['-C',root,...args], {maxBuffer:128*1024*1024, stdio:['ignore','pipe','pipe']});
   need(!git('rev-parse','--show-prefix').toString().trim(), 'Run from the target Git root.');
-  const parts = ['--','.',':(exclude).flow',':(exclude).flow/**'];
+  // Route publication during device review changes verification recipes, not the build under review.
+  const parts = ['--','.',':(exclude).flow',':(exclude).flow/**',
+    ':(exclude,glob)docs/flows/*/*.android.json', ':(exclude,glob)docs/flows/*/*.flow.md'];
   // HEAD covers clean tracked files. Read bytes only for changed or untracked paths.
   const hash = createHash('sha256');
   try { hash.update(git('rev-parse','--verify','--quiet','HEAD^{tree}')); }
