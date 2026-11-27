@@ -3,7 +3,7 @@
 Node 20 이상과 Git을 사용한다. 모든 명령은 대상 저장소 루트에서 실행한다. id는 영문·숫자·밑줄·하이픈이다. .flow/<id>/inputs/에 단계 입력 JSON을 작성하고 메인이 다음 명령을 호출한다.
 
 ```
-node <skill>/scripts/flow.mjs init <id> <UTF8-메모파일>
+node <skill>/scripts/flow.mjs init <id> <UTF8-메모파일> <codex|claude>
 node <skill>/scripts/flow.mjs status <id>
 node <skill>/scripts/flow.mjs record <id> <stage> .flow/<id>/inputs/<input>.json
 node <skill>/scripts/flow.mjs report <id>

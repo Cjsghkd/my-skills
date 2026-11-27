@@ -1,0 +1,9 @@
+{
+  "name": "my-skills",
+  "version": "0.3.0",
+  "description": "Develop a feature from a memo with independent design, review and replayable device checks.",
+  "author": { "name": "Cjsghkd" },
+  "homepage": "https://github.com/Cjsghkd/my-skills",
+  "repository": "https://github.com/Cjsghkd/my-skills",
+  "license": "MIT"
+}

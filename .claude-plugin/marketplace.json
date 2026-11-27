@@ -1,0 +1,12 @@
+{
+  "name": "my-skills",
+  "owner": { "name": "Cjsghkd" },
+  "metadata": { "description": "Feature development workflows for Codex and Claude Code." },
+  "plugins": [
+    {
+      "name": "my-skills",
+      "source": "./plugins/my-skills-claude",
+      "description": "Develop a feature from a memo with independent design, review and replayable device checks."
+    }
+  ]
+}

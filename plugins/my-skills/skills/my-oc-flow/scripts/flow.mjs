@@ -48,7 +48,8 @@ export function directory(root,id) {
   need(safeId.test(id) && typeof id === 'string','Invalid run ID');
   return join(root,'.flow',id);
 }
-export function init(root,id,memo) {
+export function init(root,id,memo,host) {
+  if (host !== undefined) need(['codex', 'claude'].includes(host), 'Unknown workflow host');
   need(string(memo),'Empty memo');
   const before = snapshot(root);
   const dir = directory(root,id);
@@ -57,7 +58,7 @@ export function init(root,id,memo) {
   if (!fs.existsSync(ignore)) fs.writeFileSync(ignore,'*\n',{flag:'wx'});
   fs.mkdirSync(dir); // Refuse to replace an existing run.
   for (const name of ['events','inputs','evidence']) fs.mkdirSync(join(dir,name));
-  fs.writeFileSync(join(dir,'memo.json'),JSON.stringify({id,memo,started:new Date().toISOString(),before},null,2),{flag:'wx'});
+  fs.writeFileSync(join(dir,'memo.json'),JSON.stringify({id,memo,host,started:new Date().toISOString(),before},null,2),{flag:'wx'});
   return dir;
 }
 export function review(state,group) {
@@ -172,7 +173,7 @@ export function status(root,id) {
   const run=read(root,id),rev=snapshot(root);
   const current=run.state.verify?.revision===rev;
   render(run,rev);
-  return {id,planKey:run.state.plan?.planKey,done:Boolean(run.state.finish && current),revision:rev,verifiedRevision:run.state.verify?.revision,
+  return {id,host:run.meta.host,planKey:run.state.plan?.planKey,done:Boolean(run.state.finish && current),revision:rev,verifiedRevision:run.state.verify?.revision,
     stages:Object.keys(run.state),planReview:review(run.state,'plan'),codeReview:review(run.state,'code'),
     criteria:run.state.criteria?.items,ui:run.state.plan?.ui,report:join(run.dir,'report','index.html')};
 }
@@ -180,10 +181,10 @@ if(process.argv[1] && resolve(process.argv[1])===fileURLToPath(import.meta.url))
   try {
     const [cmd,id,arg,file]=process.argv.slice(2),root=process.cwd();
     let result;
-    if(cmd==='init') result=init(root,id,fs.readFileSync(arg,'utf8').replace(/^\uFEFF/,''));
+    if(cmd==='init') result=init(root,id,fs.readFileSync(arg,'utf8').replace(/^\uFEFF/,''),file);
     else if(cmd==='record') result=record(root,id,arg,JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,'')));
     else if(cmd==='status'||cmd==='report') result=status(root,id);
-    else throw Error('flow.mjs init ID MEMO_FILE | record ID STAGE JSON_FILE | status ID | report ID');
+    else throw Error('flow.mjs init ID MEMO_FILE [codex|claude] | record ID STAGE JSON_FILE | status ID | report ID');
     console.log(JSON.stringify(result,null,2));
   } catch(e) {console.error(e.message);process.exitCode=1;}
 }

@@ -2,7 +2,7 @@
 
 **English** · [한국어](README.ko.md)
 
-Give `$my-oc-flow` a feature memo in Codex. It takes the change through design, implementation, and verification, then brings the code reviews, test results, and UI evidence together in a local HTML report.
+Give Codex or Claude Code a feature memo. It takes the change through design, implementation, and verification, then brings the code reviews, test results, and UI evidence together in a local HTML report.
 
 ```mermaid
 flowchart TD
@@ -18,20 +18,39 @@ flowchart TD
 
 ## Install
 
-You need Git, Node.js 20+, and a Codex client with sub-agent support. Android checks also use adb and an authorized device or emulator.
+Both clients need Git and Node.js 20+. Android checks also use adb and an authorized device or emulator.
+
+### Codex
+
+Use a Codex client with subagent support.
 
 ```sh
-codex plugin marketplace add Cjsghkd/my-skills --ref v0.2.0
+codex plugin marketplace add Cjsghkd/my-skills --ref v0.3.0
 codex plugin add my-skills@my-skills
 ```
 
-**Updating from v0.1.0?** Run `codex plugin marketplace remove my-skills` first, then run both commands above. Check the installed version with `codex plugin list --marketplace my-skills --json` and start a new Codex chat.
+**Updating from v0.1.0 or v0.2.0?** Run `codex plugin marketplace remove my-skills` first, then run both commands above. Check the installed version with `codex plugin list --marketplace my-skills --json` and open a new chat. If your client requires project roles, ask it to “Set up the my-oc-flow roles in this repository,” then start a new chat.
 
-To use a local checkout, replace the first command with `codex plugin marketplace add /path/to/my-skills`. Open a new Codex chat in the project you want to change. If your client requires project roles, ask it to “Set up the my-oc-flow roles in this repository,” then start a new chat.
+For a local checkout, use `codex plugin marketplace add /path/to/my-skills` as the first command.
+
+### Claude Code
+
+```sh
+claude plugin marketplace add Cjsghkd/my-skills#v0.3.0
+claude plugin install my-skills@my-skills
+```
+
+Open a new Claude Code session in your target project and invoke `/my-skills:my-oc-flow`. The plugin includes all ten agents. To track the default branch, register `Cjsghkd/my-skills` without a tag on first install. Then run `claude plugin marketplace update my-skills` followed by `claude plugin update my-skills@my-skills` and open a new session.
 
 ## Try it
 
+**Codex**
+
 > $my-oc-flow Restore the current draft when I close and reopen the app. The draft only needs to survive on this device.
+
+**Claude Code**
+
+> /my-skills:my-oc-flow Restore the current draft when I close and reopen the app. The draft only needs to survive on this device.
 
 If the test enters `Buy groceries`, the draft must still contain `Buy groceries` after the app closes and reopens. Designers, reviewers, and the device operator all work from that criterion.
 
@@ -48,26 +67,26 @@ Plan and code reviews use the same rule. When one reviewer raises an issue, the 
 
 ## Models and reasoning effort by stage
 
-**The main session** uses the model and reasoning effort currently selected in the Codex chat where you invoke `$my-oc-flow`. It coordinates scope with you, delegates work, and brings the findings back to the chat.
+**The main session** uses the model and effort selected in the Codex or Claude Code conversation that invoked the skill. The table lists the defaults shipped for each subagent. Claude Code resolves model aliases and effort according to the provider, model capabilities and user settings.
 
-The table shows the [subagent roles shipped with the plugin](plugins/my-skills/skills/my-oc-flow/roles.json). Each session receives the relevant criteria and paths to the code and evidence.
+| Stage | Codex model / effort | Claude Code model / effort |
+| --- | --- | --- |
+| Survey existing behavior | `gpt-6.1-terra / low` | `sonnet / medium` |
+| Clarify ambiguous acceptance criteria | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| Independent designs (2 sessions) | `gpt-6.2-sol / medium` | `sonnet / high` |
+| Plan review (2 sessions) | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| Implementation and fixes | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| Run builds and tests | `gpt-6.1-terra / low` | `haiku / low` |
+| Independent code review (2 sessions) | `gpt-6.2-sol / medium` | `sonnet / high` |
+| Record or replay device checks for UI changes | `gpt-6.1-terra / low` | `haiku / low` |
+| Assess screenshots when a visual check is needed | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| Resolve an explicit accept–reject split | `gpt-6.2-sol / high` | `opus / high` |
 
-| Stage | Subagent role | Model | Effort |
-| --- | --- | --- | --- |
-| Survey existing behavior | `survey` | `gpt-6.1-terra` | `low` |
-| Clarify ambiguous acceptance criteria | `criteria` | `gpt-6.2-sol` | `medium` |
-| Independent designs (2 sessions) | `design` | `gpt-6.2-sol` | `medium` |
-| Plan review (2 sessions) | `plan_review` | `gpt-6.2-sol` | `medium` |
-| Implementation and fixes | `implement` | `gpt-6.2-sol` | `medium` |
-| Run builds and tests | `verify` | `gpt-6.1-terra` | `low` |
-| Independent code review (2 sessions) | `code_review` | `gpt-6.2-sol` | `medium` |
-| Record or replay device checks for UI changes | `device` | `gpt-6.1-terra` | `low` |
-| Assess screenshots when a visual check is needed | `visual` | `gpt-6.2-sol` | `medium` |
-| Resolve an explicit accept–reject split | `arbiter` | `gpt-6.2-sol` | `high` |
+[Codex roles](plugins/my-skills/skills/my-oc-flow/roles.json) · [Claude Code agents](plugins/my-skills-claude/agents)
 
 ## Recording and replaying an Android check
 
-A route pairs a **user action with its expected outcome**. Restoring and deleting a draft are separate checks even though they use the same screen. Each task looks up just the affected actions, so the project builds its collection as features are changed.
+A route verified in Codex can be replayed in Claude Code and vice versa. A route pairs a **user action with its expected outcome**. Restoring and deleting a draft are separate checks even though they use the same screen. Each task looks up just the affected actions, so the project builds its collection as features are changed.
 
 - **Existing route.** If the starting conditions and final assertion match, replay it once on the current build. For draft restoration, reopen the app and check that it displays the saved text.
 - **New route.** Run the candidate steps once with `learn`. Restore the test data and screen to the documented starting state, then run the identical candidate with `confirm` on the same device and revision. After both passes, the route is saved to `docs/flows/<screen>/<action>.android.json`.
@@ -75,6 +94,6 @@ A route pairs a **user action with its expected outcome**. Restoring and deletin
 
 ## Results
 
-Open `.flow/<id>/report/index.html` to see outcomes by criterion, code changes, review findings, and the reasons for each decision. Reusable routes live in the project. Logs and screenshots for the run live under `.flow/<id>/evidence/`. Where measured, the report shows elapsed time and input, cached input, and output tokens by stage. Outstanding checks appear in an incomplete report. To resume, ask `$my-oc-flow Resume <id>`. [Example report (Korean)](examples/greeting.html)
+Open `.flow/<id>/report/index.html` to see outcomes by criterion, code changes, review findings, and the reasons for each decision. Reusable routes live in the project. Logs and screenshots for the run live under `.flow/<id>/evidence/`. Where measured, the report shows elapsed time and input, cached input, and output tokens by stage. Outstanding checks appear in an incomplete report. Resume in the original conversation so you can reach the same reviewers. Use `$my-oc-flow Resume <id>` or `/my-skills:my-oc-flow Resume <id>`. [Example report (Korean)](examples/greeting.html)
 
 [MIT license](LICENSE)

@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { confirm, learn } from '../plugins/my-skills/skills/my-oc-flow/scripts/routes.mjs';
 import { execute } from '../plugins/my-skills/skills/my-oc-flow/scripts/android.mjs';
+import { execute as replayInClaude } from '../plugins/my-skills-claude/skills/my-oc-flow/scripts/android.mjs';
 import { snapshot } from '../plugins/my-skills/skills/my-oc-flow/scripts/flow.mjs';
 
 const route = {id: 'open-drafts', package: 'demo.test', steps: [
@@ -49,6 +50,7 @@ test('a new action needs two successful runs, persists locally and can replay in
   assert.deepEqual(saved, route);
   assert.equal(snapshot(f.root), before);
   assert.equal((await execute(saved, f.driver, f.evidence)).status, 'pass');
+  assert.equal((await replayInClaude(saved, f.driver, f.evidence)).status, 'pass');
   fs.writeFileSync(join(f.root, 'docs', 'flows', 'home', 'product.md'), 'edited');
   assert.notEqual(snapshot(f.root), before);
 });

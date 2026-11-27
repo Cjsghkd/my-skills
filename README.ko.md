@@ -2,7 +2,7 @@
 
 [English](README.md) · **한국어**
 
-Codex에서 `$my-oc-flow`에 기능 메모를 건네면 설계부터 구현과 검증까지 진행합니다. 코드 리뷰 의견, 테스트 결과, 기기에서 확인한 화면은 로컬 HTML 보고서 한 곳에서 볼 수 있습니다.
+Codex나 Claude Code에 기능 메모를 건네면 설계부터 구현과 검증까지 진행합니다. 코드 리뷰 의견, 테스트 결과, 기기에서 확인한 화면은 로컬 HTML 보고서 한 곳에서 볼 수 있습니다.
 
 ```mermaid
 flowchart TD
@@ -18,20 +18,39 @@ flowchart TD
 
 ## 설치
 
-Git, Node.js 20 이상, 하위 에이전트를 지원하는 Codex가 필요합니다. Android UI를 확인할 때는 adb와 승인된 기기 또는 에뮬레이터도 사용합니다.
+Git과 Node.js 20 이상이 필요합니다. Android UI를 확인할 때는 adb와 승인된 기기 또는 에뮬레이터를 사용합니다.
+
+### Codex
+
+하위 에이전트를 지원하는 Codex에서 설치합니다.
 
 ```sh
-codex plugin marketplace add Cjsghkd/my-skills --ref v0.2.0
+codex plugin marketplace add Cjsghkd/my-skills --ref v0.3.0
 codex plugin add my-skills@my-skills
 ```
 
-**v0.1.0에서 업데이트하려면** 먼저 `codex plugin marketplace remove my-skills`를 실행하고 위의 두 명령을 실행하세요. `codex plugin list --marketplace my-skills --json`에서 설치 버전을 확인한 뒤 새 Codex 대화를 시작하세요.
+**v0.1.0 또는 v0.2.0에서 업데이트**할 때는 먼저 `codex plugin marketplace remove my-skills`를 실행한 뒤 위의 두 명령을 실행하세요. `codex plugin list --marketplace my-skills --json`에서 버전을 확인하고 새 대화를 엽니다. 프로젝트 역할 등록이 필요한 클라이언트에서는 “이 저장소에 my-oc-flow 역할을 설정해줘”라고 요청한 뒤 새 대화를 시작하세요.
 
-로컬 체크아웃을 사용하려면 첫 번째 명령을 `codex plugin marketplace add /path/to/my-skills`로 바꾸세요. 수정할 프로젝트에서 새 Codex 대화를 엽니다. 프로젝트 역할 등록이 필요한 환경이라면 “이 저장소에 my-oc-flow 역할을 설정해줘”라고 요청하고 새 대화를 시작하세요.
+로컬 체크아웃을 사용하려면 첫 명령을 `codex plugin marketplace add /path/to/my-skills`로 바꾸세요.
+
+### Claude Code
+
+```sh
+claude plugin marketplace add Cjsghkd/my-skills#v0.3.0
+claude plugin install my-skills@my-skills
+```
+
+대상 프로젝트에서 새 Claude Code 대화를 열고 `/my-skills:my-oc-flow`를 호출합니다. 역할 10개는 플러그인에 포함됩니다. 기본 브랜치의 업데이트를 계속 받으려면 처음부터 태그 없이 `Cjsghkd/my-skills`를 등록하세요. 이후 `claude plugin marketplace update my-skills`와 `claude plugin update my-skills@my-skills`를 차례로 실행하고 새 대화를 엽니다.
 
 ## 사용 예
 
+**Codex**
+
 > $my-oc-flow 앱을 닫았다가 다시 열면 작성하던 초안을 복원해줘. 같은 기기에서만 유지되면 돼.
+
+**Claude Code**
+
+> /my-skills:my-oc-flow 앱을 닫았다가 다시 열면 작성하던 초안을 복원해줘. 같은 기기에서만 유지되면 돼.
 
 테스트에서 `장보기`라고 입력했다면 앱을 종료했다 다시 연 뒤에도 초안에 `장보기`가 있어야 합니다. 이 한 가지 기준을 설계자, 리뷰어, 기기 검증 담당이 함께 사용합니다.
 
@@ -48,26 +67,26 @@ codex plugin add my-skills@my-skills
 
 ## 단계별 모델과 추론 강도
 
-**메인 세션**은 `$my-oc-flow`를 호출한 Codex 대화에 현재 적용된 모델과 추론 강도(effort)를 그대로 사용합니다. 이 대화에서 사용자와 범위를 정하고, 하위 세션에 작업을 나누고, 결과를 종합합니다.
+**메인 세션**은 호출한 Codex 또는 Claude Code 대화의 모델과 추론 강도를 그대로 사용합니다. 아래 값은 플러그인이 각 하위 역할에 지정하는 기본값입니다. Claude Code의 모델 별칭과 실제 적용되는 추론 강도는 제공자, 모델 지원 범위, 사용자 설정에 따라 달라질 수 있습니다.
 
-아래는 플러그인이 제공하는 하위 세션의 [역할별 설정](plugins/my-skills/skills/my-oc-flow/roles.json)입니다. 각 세션에는 담당 기준과 관련 코드·증거 경로를 전달합니다.
+| 단계 | Codex 모델 / effort | Claude Code 모델 / effort |
+| --- | --- | --- |
+| 기존 동작 조사 | `gpt-6.1-terra / low` | `sonnet / medium` |
+| 완료 기준 해석이 필요할 때 | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| 독립 설계 (2개 세션) | `gpt-6.2-sol / medium` | `sonnet / high` |
+| 설계안 검토 (2개 세션) | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| 구현 및 수정 | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| 빌드 및 테스트 실행 | `gpt-6.1-terra / low` | `haiku / low` |
+| 독립 코드 리뷰 (2개 세션) | `gpt-6.2-sol / medium` | `sonnet / high` |
+| UI 변경 시 기기 경로 기록·재생 | `gpt-6.1-terra / low` | `haiku / low` |
+| 캡처로 화면 상태를 판정해야 할 때 | `gpt-6.2-sol / medium` | `sonnet / medium` |
+| 리뷰 판정이 채택·기각으로 갈릴 때 | `gpt-6.2-sol / high` | `opus / high` |
 
-| 단계 | 하위 역할 | 모델 | Effort |
-| --- | --- | --- | --- |
-| 기존 동작 조사 | `survey` | `gpt-6.1-terra` | `low` |
-| 완료 기준 해석이 필요할 때 | `criteria` | `gpt-6.2-sol` | `medium` |
-| 독립 설계 (2개 세션) | `design` | `gpt-6.2-sol` | `medium` |
-| 설계안 검토 (2개 세션) | `plan_review` | `gpt-6.2-sol` | `medium` |
-| 구현 및 수정 | `implement` | `gpt-6.2-sol` | `medium` |
-| 빌드 및 테스트 실행 | `verify` | `gpt-6.1-terra` | `low` |
-| 독립 코드 리뷰 (2개 세션) | `code_review` | `gpt-6.2-sol` | `medium` |
-| UI 변경 시 기기 경로 기록·재생 | `device` | `gpt-6.1-terra` | `low` |
-| 캡처로 화면 상태를 판정해야 할 때 | `visual` | `gpt-6.2-sol` | `medium` |
-| 리뷰 판정이 채택·기각으로 갈릴 때 | `arbiter` | `gpt-6.2-sol` | `high` |
+[Codex 역할](plugins/my-skills/skills/my-oc-flow/roles.json) · [Claude Code 에이전트](plugins/my-skills-claude/agents)
 
 ## Android 기기에서 기록하고 재생하는 방법
 
-경로는 화면에서 확인할 **사용자 동작과 그 결과**를 한 쌍으로 저장합니다. 같은 초안 화면에서도 ‘초안 복원’과 ‘초안 삭제’는 다른 경로입니다. 작업 때마다 직접 영향을 받는 동작만 조회하므로 프로젝트의 경로는 실제로 작업한 만큼 쌓입니다.
+Codex에서 저장한 경로는 Claude Code에서도 재생할 수 있고 그 반대도 가능합니다. 경로는 화면에서 확인할 **사용자 동작과 그 결과**를 한 쌍으로 저장합니다. 같은 초안 화면에서도 ‘초안 복원’과 ‘초안 삭제’는 다른 경로입니다. 작업 때마다 직접 영향을 받는 동작만 조회하므로 프로젝트의 경로는 실제로 작업한 만큼 쌓입니다.
 
 - **기존 경로.** 시작 조건과 마지막 기대값이 이번 기준과 맞으면 현재 빌드에서 한 번 재생합니다. 초안 복원이라면 앱을 다시 열고 저장해 둔 문장이 실제로 표시되는지 확인합니다.
 - **새 경로.** `learn`으로 후보 절차를 한 번 실행합니다. 테스트 데이터와 화면을 기록한 시작 상태로 돌린 뒤, 같은 기기와 변경본에서 `confirm`으로 동일한 절차를 다시 실행합니다. 두 번 모두 통과한 경로만 `docs/flows/<화면>/<동작>.android.json`에 저장합니다.
@@ -75,6 +94,6 @@ codex plugin add my-skills@my-skills
 
 ## 결과 확인
 
-`.flow/<id>/report/index.html`에서 완료 기준별 결과, 변경 내용, 리뷰 의견과 판정 근거를 확인할 수 있습니다. 재사용할 경로는 프로젝트에 두고, 이번 실행의 로그와 스크린샷은 `.flow/<id>/evidence/`에 보관합니다. 보고서에는 측정된 단계의 실행 시간과 입력·캐시 입력·출력 토큰이 표시됩니다. 미확인 항목이 남으면 불완료 보고서를 제공하며, `$my-oc-flow <id> 이어서 진행해줘`로 재개할 수 있습니다. [예제 보고서](examples/greeting.html)
+`.flow/<id>/report/index.html`에서 완료 기준별 결과, 변경 내용, 리뷰 의견과 판정 근거를 확인할 수 있습니다. 재사용할 경로는 프로젝트에 두고, 이번 실행의 로그와 스크린샷은 `.flow/<id>/evidence/`에 보관합니다. 보고서에는 측정된 단계의 실행 시간과 입력·캐시 입력·출력 토큰이 표시됩니다. 미확인 항목이 남으면 불완료 보고서를 제공합니다. 기존 리뷰어에게 다시 의견을 받을 수 있도록 작업을 시작한 대화에서 `$my-oc-flow <id> 이어서 진행해줘` 또는 `/my-skills:my-oc-flow <id> 이어서 진행해줘`로 재개하세요. [예제 보고서](examples/greeting.html)
 
 [MIT 라이선스](LICENSE)

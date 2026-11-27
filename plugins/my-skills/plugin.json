@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "my-skills",
-  "version": "0.2.0",
-  "description": "Personal development workflows for Codex",
+  "version": "0.3.0",
+  "description": "Develop a feature from a memo with independent design, review and replayable device checks.",
   "extensions": {
     "com.openai": {
       "interface": {
