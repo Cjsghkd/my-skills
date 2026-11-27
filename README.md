@@ -25,22 +25,20 @@ Both clients need Git and Node.js 20+. Android checks also use adb and an author
 Use a Codex client with subagent support.
 
 ```sh
-codex plugin marketplace add Cjsghkd/my-skills --ref v0.3.0
+codex plugin marketplace add Cjsghkd/my-skills
 codex plugin add my-skills@my-skills
 ```
 
-**Updating from v0.1.0 or v0.2.0?** Run `codex plugin marketplace remove my-skills` first, then run both commands above. Check the installed version with `codex plugin list --marketplace my-skills --json` and open a new chat. If your client requires project roles, ask it to “Set up the my-oc-flow roles in this repository,” then start a new chat.
-
-For a local checkout, use `codex plugin marketplace add /path/to/my-skills` as the first command.
+Open a new Codex chat in the project you want to change. If your client requires project roles, ask it to “Set up the my-oc-flow roles in this repository,” then start a new chat.
 
 ### Claude Code
 
 ```sh
-claude plugin marketplace add Cjsghkd/my-skills#v0.3.0
+claude plugin marketplace add Cjsghkd/my-skills
 claude plugin install my-skills@my-skills
 ```
 
-Open a new Claude Code session in your target project and invoke `/my-skills:my-oc-flow`. The plugin includes all ten agents. To track the default branch, register `Cjsghkd/my-skills` without a tag on first install. Then run `claude plugin marketplace update my-skills` followed by `claude plugin update my-skills@my-skills` and open a new session.
+Open a new Claude Code session in your target project and invoke `/my-skills:my-oc-flow`. The plugin includes all ten agents.
 
 ## Try it
 

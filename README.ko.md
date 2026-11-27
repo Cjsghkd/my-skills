@@ -25,22 +25,20 @@ Git과 Node.js 20 이상이 필요합니다. Android UI를 확인할 때는 adb�
 하위 에이전트를 지원하는 Codex에서 설치합니다.
 
 ```sh
-codex plugin marketplace add Cjsghkd/my-skills --ref v0.3.0
+codex plugin marketplace add Cjsghkd/my-skills
 codex plugin add my-skills@my-skills
 ```
 
-**v0.1.0 또는 v0.2.0에서 업데이트**할 때는 먼저 `codex plugin marketplace remove my-skills`를 실행한 뒤 위의 두 명령을 실행하세요. `codex plugin list --marketplace my-skills --json`에서 버전을 확인하고 새 대화를 엽니다. 프로젝트 역할 등록이 필요한 클라이언트에서는 “이 저장소에 my-oc-flow 역할을 설정해줘”라고 요청한 뒤 새 대화를 시작하세요.
-
-로컬 체크아웃을 사용하려면 첫 명령을 `codex plugin marketplace add /path/to/my-skills`로 바꾸세요.
+작업할 프로젝트에서 새 Codex 대화를 엽니다. 프로젝트 역할 등록이 필요한 클라이언트에서는 “이 저장소에 my-oc-flow 역할을 설정해줘”라고 요청한 뒤 새 대화를 시작하세요.
 
 ### Claude Code
 
 ```sh
-claude plugin marketplace add Cjsghkd/my-skills#v0.3.0
+claude plugin marketplace add Cjsghkd/my-skills
 claude plugin install my-skills@my-skills
 ```
 
-대상 프로젝트에서 새 Claude Code 대화를 열고 `/my-skills:my-oc-flow`를 호출합니다. 역할 10개는 플러그인에 포함됩니다. 기본 브랜치의 업데이트를 계속 받으려면 처음부터 태그 없이 `Cjsghkd/my-skills`를 등록하세요. 이후 `claude plugin marketplace update my-skills`와 `claude plugin update my-skills@my-skills`를 차례로 실행하고 새 대화를 엽니다.
+대상 프로젝트에서 새 Claude Code 대화를 열고 `/my-skills:my-oc-flow`를 호출합니다. 역할 10개는 플러그인에 포함됩니다.
 
 ## 사용 예
 
